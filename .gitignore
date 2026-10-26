@@ -1,0 +1,20 @@
+node_modules/
+dist/
+work/
+*.local
+.DS_Store
+*.tsbuildinfo
+public/pdf-assets/
+
+# 个人导出文件与凭据不得进入公开仓库
+*.pdf
+!src/imports/__fixtures__/synthetic-timetable.pdf
+MyTimetable-*.json
+backups/
+private/
+.env
+.env.*
+*.pem
+*.key
+*.p12
+*.pfx
