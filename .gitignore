@@ -18,3 +18,8 @@ private/
 *.key
 *.p12
 *.pfx
+
+# 本地扩展构建包与用户教务响应
+public/school-import-helper.zip
+*.school.json
+school-response*.json

@@ -194,7 +194,7 @@ export default function WeekBoard({
           <CalendarDays size={24} />
           <div>
             <strong>这一周，留白也很好</strong>
-            <p>添加课程，或导入 PDF 课表。</p>
+            <p>添加课程，或导入教务 JSON／PDF。</p>
           </div>
           <button className="text-btn" onClick={onImport}>
             导入我的课表

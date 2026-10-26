@@ -12,6 +12,7 @@ import { candidateIssues, prepareImport } from "../imports/merge";
 import { conflicts, weekdays, type Data } from "../domain";
 import type { ImportCandidate, ImportResult } from "../imports/types";
 import { parseSchoolWeeks } from "../imports/weeks";
+import { parseSchoolJsonText, schoolJsonSource } from "../imports/school";
 export default function ImportWizard({
   data,
   onClose,
@@ -31,6 +32,8 @@ export default function ImportWizard({
     [mode, setMode] = useState<"merge" | "replace">("merge"),
     [term, setTerm] = useState(initial?.termLabel || data.termLabel || ""),
     [checked, setChecked] = useState(false);
+  const [source, setSource] = useState<"school-json" | "pdf">("school-json");
+  const [pasted, setPasted] = useState("");
   const controller = useRef<AbortController | null>(null);
   const fileRef = useRef<HTMLInputElement>(null);
   useEffect(() => () => controller.current?.abort(), []);
@@ -48,18 +51,20 @@ export default function ImportWizard({
     const ac = new AbortController();
     controller.current = ac;
     try {
-      const { pdfSource } = await import("../imports/pdf");
-      const parsed = await pdfSource.parse(file, ac.signal);
+      const adapter =
+        source === "school-json"
+          ? schoolJsonSource
+          : (await import("../imports/pdf")).pdfSource;
+      const parsed = await adapter.parse(file, ac.signal);
       if (ac.signal.aborted) return;
+      setPasted("");
       setResult(parsed);
       setRows(parsed.candidates);
       setTerm(parsed.termLabel || data.termLabel || "");
     } catch (e) {
       if (!ac.signal.aborted)
         setError(
-          e instanceof Error
-            ? `读取失败：${e.message}。请确认 PDF 可复制文字、未加密。`
-            : "无法读取 PDF",
+          e instanceof Error ? `读取失败：${e.message}` : "无法读取文件",
         );
     } finally {
       if (!ac.signal.aborted) setLoading(false);
@@ -113,7 +118,7 @@ export default function ImportWizard({
   }
   return (
     <Modal
-      title={initial ? "核对其他／待确认课程" : "导入课表 · 北京农学院 PDF"}
+      title={initial ? "核对其他／待确认课程" : "导入课表 · 本地核对"}
       wide
       onClose={() => {
         controller.current?.abort();
@@ -123,35 +128,156 @@ export default function ImportWizard({
     >
       <div className="import-privacy">
         <ShieldCheck size={17} />
-        <span>在这台设备解析，PDF 不会上传，也不会保存原文件。</span>
+        <span>
+          在这台设备解析，不上传。教务 JSON
+          仅保留课程白名单字段，不保存登录信息。
+        </span>
       </div>
       {!initial && (
-        <div className="pdf-picker">
-          <FileUp size={30} strokeWidth={1.4} />
-          <div>
-            <strong>
-              {loading ? "正在读取和定位课程…" : "选择教学系统导出的学期课表"}
-            </strong>
-            <p>支持可复制文字的 PDF · 最大 20 MB / 30 页</p>
+        <>
+          <div className="segmented source-selector" aria-label="导入来源">
+            <button
+              disabled={loading || saving}
+              className={source === "school-json" ? "active" : ""}
+              onClick={() => {
+                setSource("school-json");
+                setResult(null);
+                setRows([]);
+                setError("");
+                setChecked(false);
+              }}
+            >
+              教务 JSON
+            </button>
+            <button
+              disabled={loading || saving}
+              className={source === "pdf" ? "active" : ""}
+              onClick={() => {
+                setSource("pdf");
+                setResult(null);
+                setRows([]);
+                setError("");
+                setPasted("");
+                setChecked(false);
+              }}
+            >
+              PDF 识别
+            </button>
           </div>
-          <button
-            className="secondary"
-            disabled={loading || saving}
-            onClick={() => fileRef.current?.click()}
-          >
-            {result ? "重新选择" : "选择 PDF"}
-          </button>
-          <input
-            hidden
-            ref={fileRef}
-            type="file"
-            accept=".pdf,application/pdf"
-            onChange={(e) => {
-              void read(e.target.files?.[0]);
-              e.target.value = "";
-            }}
-          />
-        </div>
+          <div className="pdf-picker">
+            <FileUp size={30} strokeWidth={1.4} />
+            <div>
+              <strong>
+                {loading
+                  ? "正在读取课程…"
+                  : source === "school-json"
+                    ? "导入已登录教务页面的课程 JSON"
+                    : "选择教学系统导出的学期课表"}
+              </strong>
+              <p>
+                {source === "school-json"
+                  ? "本地助手导出文件或查询响应正文 · 最大 2 MB"
+                  : "支持可复制文字的 PDF · 最大 20 MB / 30 页"}
+              </p>
+            </div>
+            <button
+              className="secondary"
+              disabled={loading || saving}
+              onClick={() => fileRef.current?.click()}
+            >
+              {source === "school-json"
+                ? "选择教务 JSON"
+                : result
+                  ? "重新选择"
+                  : "选择 PDF"}
+            </button>
+            <input
+              hidden
+              type="file"
+              ref={fileRef}
+              accept={
+                source === "school-json"
+                  ? ".json,application/json"
+                  : ".pdf,application/pdf"
+              }
+              onChange={(e) => {
+                void read(e.target.files?.[0]);
+                e.target.value = "";
+              }}
+            />
+          </div>
+          {source === "school-json" && (
+            <details className="school-paste">
+              <summary>粘贴 JSON 响应正文／查看 Windows 导入方法</summary>
+              <p>
+                Windows Chrome／Edge：正常登录学校 → 启动本地助手 →
+                回到页面重新点击学期查询 → 导出课程 JSON。也可在 F12 的“网络 →
+                响应”复制正文。不要复制 HAR、请求头或 cURL。
+              </p>
+              <a
+                className="helper-download"
+                href={`${import.meta.env.BASE_URL}school-import-helper.zip`}
+                download
+              >
+                下载已构建的 Windows 助手 ZIP
+              </a>
+              <p>
+                不需要编程或本地构建。也可在 GitHub Actions 的“构建 Windows
+                浏览器扩展”成功运行底部，点击 Artifacts →
+                MyTimetable-Windows-Helper 下载（需登录 GitHub）。不要下载 Code
+                → Download ZIP。
+              </p>
+              <a
+                className="helper-download"
+                href="https://github.com/WhdhZ/my-timetable/actions/workflows/build-helper.yml"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                打开 GitHub 扩展下载页面
+              </a>
+              <p>
+                解压后，在 chrome://extensions 或 edge://extensions
+                开启开发者模式，点击“加载已解压的扩展程序”，选择含 manifest.json
+                的目录。助手只读当前主页面的后续同源响应，不主动请求学校接口；跨域框架或旧请求请用响应正文导入。
+              </p>
+              <label>
+                课程查询的 JSON 正文
+                <textarea
+                  maxLength={2 * 1024 * 1024}
+                  value={pasted}
+                  onChange={(e) => setPasted(e.target.value)}
+                  placeholder="粘贴含 kcmc、cdmc、jcs、xqj、zcd、jsxm 的课程响应"
+                />
+              </label>
+              <button
+                className="secondary"
+                disabled={!pasted.trim() || loading || saving}
+                onClick={() => {
+                  setError("");
+                  setResult(null);
+                  setRows([]);
+                  setChecked(false);
+                  try {
+                    const parsed = parseSchoolJsonText(pasted);
+                    setResult(parsed);
+                    setRows(parsed.candidates);
+                    setTerm(parsed.termLabel || data.termLabel || "");
+                    setPasted("");
+                  } catch (e) {
+                    setError((e as Error).message);
+                  }
+                }}
+              >
+                解析响应正文
+              </button>
+              <p>
+                传到 iPhone：用你选择的文件传输方式发送导出的 JSON，在 iPhone
+                MyTimetable 的“教务
+                JSON”入口选择文件，核对后确认导入。文件仍含个人课程安排，请勿公开分享。
+              </p>
+            </details>
+          )}
+        </>
       )}
       {error && (
         <p className="form-error" role="alert">
@@ -181,9 +307,9 @@ export default function ImportWizard({
           <div className="import-caution">
             <AlertCircle size={18} />
             <div>
-              <strong>请对照原 PDF 核对后导入</strong>
+              <strong>请对照学校课表核对后导入</strong>
               <p>
-                版式识别可能有误。展开每门课可修改、复制拆分或取消导入。时间或周次不完整的内容会保留为待确认，不进入网格。未自动推测开学日期或上下课钟点。
+                导入结果可能有未确认字段。展开每门课可修改、复制拆分或取消导入。时间或周次不完整的内容会保留为待确认，不进入网格。未自动推测开学日期或上下课钟点。
               </p>
               {result.warnings.map((w, i) => (
                 <p key={i}>• {w}</p>
@@ -375,7 +501,7 @@ export default function ImportWizard({
                       </div>
                     )}
                     <details className="source-text">
-                      <summary>查看此项 PDF 原文</summary>
+                      <summary>查看此项课程来源文本</summary>
                       <pre>{row.raw}</pre>
                     </details>
                     <button

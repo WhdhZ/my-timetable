@@ -639,8 +639,8 @@ function App() {
                     导入课表
                   </h2>
                   <p>
-                    北京农学院教学系统
-                    PDF，在本机识别、核对后导入。请先确认学期与节次时间。
+                    北京农学院教学系统 JSON 或 PDF，在本机核对后导入。教务 JSON
+                    优先，保留现有学期与节次时间。
                   </p>
                   <button
                     className="primary"
@@ -649,7 +649,7 @@ function App() {
                       setImporting(true);
                     }}
                   >
-                    选择 PDF 并识别
+                    教务 JSON／PDF 导入
                   </button>
                   {backupAt && (
                     <button
