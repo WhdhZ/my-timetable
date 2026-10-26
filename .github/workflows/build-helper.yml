@@ -1,0 +1,45 @@
+name: 构建 Windows 浏览器扩展
+on:
+  push:
+    branches: ["**"]
+    paths-ignore:
+      - "**/*.md"
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: helper-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  build-helper:
+    name: 测试并打包 Chrome / Edge 扩展
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - name: 云端安装依赖（用户无需操作）
+        run: npm ci
+      - name: 验证课程识别与数据安全
+        run: npm test
+      - name: 构建应用与扩展
+        run: npm run build
+      - name: 检查扩展文件、权限和 ZIP
+        run: npm run helper:verify
+      - name: 上传可直接安装的扩展文件夹
+        id: artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: MyTimetable-Windows-Helper
+          path: work/school-import-helper/
+          if-no-files-found: error
+          retention-days: 30
+      - name: 写入下载与安装说明
+        env:
+          HELPER_ARTIFACT_URL: ${{ steps.artifact.outputs.artifact-url }}
+        run: node scripts/helper-ci-summary.mjs

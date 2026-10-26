@@ -44,7 +44,7 @@ export default defineConfig({
       },
       workbox: {
         globPatterns: [
-          "**/*.{js,mjs,css,html,png,svg,ico,webmanifest,bcmap,pfb,ttf,wasm,bin}",
+          "**/*.{js,mjs,css,html,png,svg,ico,webmanifest,bcmap,pfb,ttf,wasm,bin,zip}",
         ],
         maximumFileSizeToCacheInBytes: 8 * 1024 * 1024,
         navigateFallback: "/my-timetable/index.html",

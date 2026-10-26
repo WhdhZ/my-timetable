@@ -1,0 +1,19 @@
+{
+  "manifest_version": 3,
+  "name": "MyTimetable 本地导入助手",
+  "version": "0.2.0",
+  "description": "在用户已登录的当前页面读取后续课表 JSON，仅导出课程字段，不读取登录凭据。",
+  "permissions": ["activeTab", "scripting"],
+  "action": {
+    "default_popup": "popup.html",
+    "default_title": "MyTimetable 本地导入助手"
+  },
+  "incognito": "not_allowed",
+  "content_security_policy": {
+    "extension_pages": "script-src 'self'; object-src 'none'; connect-src 'none'"
+  },
+  "background": {
+    "service_worker": "background.js"
+  },
+  "minimum_chrome_version": "111"
+}

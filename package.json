@@ -5,11 +5,13 @@
   "type": "module",
   "scripts": {
     "dev": "vite --host 0.0.0.0",
-    "build": "node scripts/copy-pdf-assets.mjs && tsc -b && vite build",
+    "build": "node scripts/copy-pdf-assets.mjs && node scripts/build-school-helper.mjs && tsc -b && vite build",
     "preview": "vite preview --host 0.0.0.0",
     "test": "vitest run",
     "icons": "node scripts/generate-icons.mjs",
-    "postinstall": "node scripts/copy-pdf-assets.mjs"
+    "postinstall": "node scripts/copy-pdf-assets.mjs",
+    "helper:build": "node scripts/build-school-helper.mjs",
+    "helper:verify": "node scripts/verify-school-helper.mjs"
   },
   "dependencies": {
     "idb-keyval": "^6.2.1",
@@ -23,7 +25,9 @@
     "@types/react": "^19.1.0",
     "@types/react-dom": "^19.1.0",
     "@vitejs/plugin-react": "^4.5.0",
+    "esbuild": "^0.25.12",
     "fake-indexeddb": "^6.2.6",
+    "fflate": "^0.8.3",
     "sharp": "^0.34.0",
     "tailwindcss": "^4.1.0",
     "typescript": "~5.8.3",

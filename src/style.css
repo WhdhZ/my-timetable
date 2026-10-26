@@ -2793,3 +2793,61 @@ h1 {
     padding: 3px;
   }
 }
+.school-paste {
+  border: 1px solid var(--line);
+  border-radius: 13px;
+  padding: 17px;
+  margin: 17px 0;
+  color: var(--ink);
+}
+.school-paste > summary {
+  font-size: 12px;
+  cursor: pointer;
+  line-height: 1.9;
+}
+.school-paste > p {
+  font-size: 11px;
+  line-height: 1.9;
+  color: var(--muted);
+  margin: 14px 0;
+}
+.school-paste textarea {
+  width: 100%;
+  min-height: 150px;
+  max-height: 300px;
+  resize: vertical;
+  border: 1px solid var(--line);
+  background: var(--bg);
+  color: var(--ink);
+  border-radius: 10px;
+  padding: 12px;
+  font:
+    12px/1.8 ui-monospace,
+    monospace;
+  box-sizing: border-box;
+}
+.school-paste .secondary {
+  margin-top: 14px;
+}
+.helper-download {
+  color: var(--green);
+  font-size: 12px;
+  display: inline-block;
+  text-decoration: underline;
+  text-underline-offset: 4px;
+  padding: 8px 0;
+}
+.source-selector {
+  margin-top: 0;
+}
+.source-selector button {
+  font-size: 12px;
+}
+@media (max-width: 600px) {
+  .school-paste {
+    padding: 15px 13px;
+  }
+  .school-paste textarea {
+    font-size: 16px;
+  }
+}

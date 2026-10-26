@@ -1,0 +1,67 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>MyTimetable 本地导入助手</title>
+    <link rel="stylesheet" href="popup.css" />
+  </head>
+  <body>
+    <header>
+      <span class="app-mark">课</span>
+      <div>
+        <p class="brand">MyTimetable</p>
+        <h1>把课表带到手机。</h1>
+      </div>
+    </header>
+    <ol class="quick-steps">
+      <li>先在浏览器扫码登录，打开自己的课表。</li>
+      <li>点“开始读取”，收起助手，在学校页面查询完整学期。</li>
+      <li>重新打开助手检查课程，再导出到 iPhone。</li>
+    </ol>
+    <p class="origin-caption">当前页面</p>
+    <p id="origin">正在检查当前标签页…</p>
+    <button id="start">我已登录，开始读取课表</button>
+    <p class="hint">
+      登录跳转或刷新会中断读取。登录完成后，请在课表页重新开始；助手不会自动登录。
+    </p>
+    <div id="status-box" class="status-box" data-state="idle">
+      <strong id="status-title">准备读取课表</strong>
+      <p id="status" role="status" aria-live="polite">请先打开学校课表网页。</p>
+    </div>
+    <button id="refresh" class="secondary">检查课表</button>
+    <div id="preview"></div>
+    <label
+      >学年学期（选填）<input
+        id="term"
+        maxlength="100"
+        placeholder="例如：2026—2027 第 1 学期"
+    /></label>
+    <button id="download" disabled>导出课程 JSON 到电脑</button>
+    <p id="next-step" class="next-step" hidden>
+      发送文件到 iPhone，在 MyTimetable 中选择“导入课表 → 教务
+      JSON”，核对后确认导入。
+    </p>
+    <button id="stop" class="text-button">停止并清空本页暂存</button>
+    <details class="help">
+      <summary>没有读到课程？</summary>
+      <ol>
+        <li>确认停在已登录的本人课表页，而不是企业微信客户端或新标签页。</li>
+        <li>点“开始读取”后，回到学校页面重新点击学期查询，不要整页刷新。</li>
+        <li>
+          仍然为 0？可能是内嵌框架、缓存或学校页面限制。不会把“0
+          门课程”当作成功。可改用学校允许的 PDF 导出或 JSON 响应正文导入。
+        </li>
+      </ol>
+      <p>不需要向任何人提供密码、Cookie 或 Token。</p>
+    </details>
+    <a class="guide-link" href="help.html" target="_blank" rel="noopener"
+      >安装与使用说明 · 如何传到 iPhone</a
+    >
+    <p class="privacy">
+      只导出课程字段，不上传，不保存登录凭据。停止、刷新或 10
+      分钟后清空暂存；只保留最近一次匹配的课程响应。
+    </p>
+    <script type="module" src="popup.js"></script>
+  </body>
+</html>
